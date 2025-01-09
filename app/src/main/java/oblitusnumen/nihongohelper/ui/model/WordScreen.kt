@@ -53,7 +53,7 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
             )
             Button(
                 { isTranslationToJpNext = !isTranslationToJpNext },
-                Modifier.fillMaxWidth().defaultMinSize(minHeight = 64.dp).padding(vertical = 4.dp, horizontal = 8.dp)
+                Modifier.fillMaxWidth().defaultMinSize(minHeight = 64.dp).padding(vertical = 12.dp, horizontal = 8.dp)
                     .border(2.dp, Color.Gray, shape = RoundedCornerShape(4.dp)).align(Alignment.CenterHorizontally)
             ) {
                 Text(if (isTranslationToJpNext) "Russian → Japanese" else "Japanese → Russian")
