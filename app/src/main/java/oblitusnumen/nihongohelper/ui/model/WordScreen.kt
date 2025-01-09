@@ -147,7 +147,13 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
     }
 
     @Composable
-    fun answerField(label: String, lock: Boolean, correctOne: String, typedValue: MutableState<String>, modifier: Modifier = Modifier) {
+    fun answerField(
+        label: String,
+        lock: Boolean,
+        correctOne: String,
+        typedValue: MutableState<String>,
+        modifier: Modifier = Modifier
+    ) {
         val correct = remember(lock) { typedValue.value.equalsStripIgnoreCase(correctOne) }
         Column {
             OutlinedTextField(
@@ -160,7 +166,8 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 modifier = Modifier.padding(8.dp).align(Alignment.CenterHorizontally)
             )
-            val spaceModifier = Modifier.padding(8.dp).defaultMinSize(minHeight = measureTextLine(MaterialTheme.typography.bodySmall) * 1.2f)
+            val spaceModifier = Modifier.padding(8.dp)
+                .defaultMinSize(minHeight = measureTextLine(MaterialTheme.typography.bodySmall) * 1.2f)
             if (lock) {
                 if (correct)
                     Text(
