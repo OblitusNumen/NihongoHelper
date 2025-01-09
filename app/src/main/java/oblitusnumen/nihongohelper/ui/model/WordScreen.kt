@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import oblitusnumen.nihongohelper.implementation.data.DataManager
 import oblitusnumen.nihongohelper.implementation.data.Word
@@ -47,7 +49,7 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
             )
             Text(
-                "Correct percentage: ${if (overallNumber == 0) "N/A" else "${correctNumber.toFloat() / overallNumber}%"}",
+                "Correct percentage: ${if (overallNumber == 0) "N/A" else "${100f * correctNumber / overallNumber}%"}",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
             )
@@ -137,7 +139,7 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
             )
             Text(
                 value,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
             )
             Spacer(modifier = Modifier.padding(8.dp).defaultMinSize(minHeight = 8.dp))
@@ -155,6 +157,7 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
                 },
                 label = { Text(label) },
                 readOnly = lock,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 modifier = Modifier.padding(8.dp).align(Alignment.CenterHorizontally)
             )
             val spaceModifier = Modifier.padding(8.dp).defaultMinSize(minHeight = measureTextLine(MaterialTheme.typography.bodySmall) * 1.2f)

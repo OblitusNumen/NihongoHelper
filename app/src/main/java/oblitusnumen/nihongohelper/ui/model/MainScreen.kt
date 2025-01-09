@@ -103,8 +103,14 @@ class MainScreen(private val dataManager: DataManager) {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun topBar() {
+        val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
         CenterAlignedTopAppBar(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .9f),
+                titleContentColor = MaterialTheme.colorScheme.primary,
+            ),
             title = { Text("日本語 Helper", maxLines = 1) },
+            scrollBehavior = scrollBehavior,
         )
     }
 }
