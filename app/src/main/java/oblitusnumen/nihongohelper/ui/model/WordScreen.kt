@@ -29,8 +29,8 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
     fun compose(modifier: Modifier = Modifier) {
         var correctNumber by remember { mutableStateOf(0) }
         var overallNumber by remember { mutableStateOf(0) }
-        var isTranslationToJp by remember { mutableStateOf(true) }
-        var isTranslationToJpNext by remember { mutableStateOf(isTranslationToJp) }
+        var isTranslationToJp by remember { mutableStateOf(dataManager.config.isTranslateToJp) }
+        var askHiragana by remember { mutableStateOf(dataManager.config.askHiragana) }
         var isCorrect by remember { mutableStateOf(false) }
         var hasAnswered by remember { mutableStateOf(false) }
         val word = wordQueue[0]
@@ -53,13 +53,7 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
             )
-            Button(
-                { isTranslationToJpNext = !isTranslationToJpNext },
-                Modifier.fillMaxWidth().defaultMinSize(minHeight = 64.dp).padding(vertical = 12.dp, horizontal = 8.dp)
-                    .border(2.dp, Color.Gray, shape = RoundedCornerShape(4.dp)).align(Alignment.CenterHorizontally)
-            ) {
-                Text(if (isTranslationToJpNext) "Russian → Japanese" else "Japanese → Russian")
-            }
+            Spacer(modifier = Modifier.height(16.dp))
             Column {
                 val modifier1 = Modifier//.weight(1f).align(Alignment.CenterVertically)
                 if (isTranslationToJp) {
@@ -77,52 +71,58 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
                         modifier1
                     )//translation blank
                 }
-                word.hiraganaEquivalent?.let { hiraganaE ->
-                    answerField(
-                        "Hiragana",
-                        hasAnswered,
-                        hiraganaE,
-                        hiragana,
-                        modifier1
-                    )//hiragana equivalent
+                if (askHiragana) {
+                    word.hiraganaEquivalent?.let { hiraganaE ->
+                        answerField(
+                            "Hiragana",
+                            hasAnswered,
+                            hiraganaE,
+                            hiragana,
+                            modifier1
+                        )//hiragana equivalent
+                    }
                 }
             }
             Spacer(Modifier.weight(1f))
             val buttonModifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp).fillMaxWidth()
+            val nextWord = {
+                translation.value = ""
+                jp.value = ""
+                hiragana.value = ""
+                overallNumber++
+                isTranslationToJp = dataManager.config.isTranslateToJp
+                askHiragana = dataManager.config.askHiragana
+                hasAnswered = false
+                translation.value = ""
+                while (wordQueue.size <= 10) {
+                    wordQueue.addAll(wordPool.wordsScrambled())
+                }
+                if (isCorrect) {
+                    wordQueue.removeAt(0)
+                    correctNumber++
+                } else {
+                    if (dataManager.config.repeatNotCorrect) {
+                        if (wordQueue[4] != word) wordQueue.add(4, word)
+                        if (wordQueue[10] != word) wordQueue.add(10, word)
+                    } else
+                        wordQueue.removeAt(0)
+                }
+                isCorrect = false
+            }
             if (!hasAnswered) {
                 Button(onClick = {
-                    isCorrect = (word.hiraganaEquivalent == null ||
+                    isCorrect = (word.hiraganaEquivalent == null || !askHiragana ||
                             word.hiraganaEquivalent.equalsStripIgnoreCase(hiragana.value)) &&
                             word.jpWord.equalsStripIgnoreCase(jp.value) &&
                             word.translationWord.equalsStripIgnoreCase(translation.value)
                     hasAnswered = true
+                    if (dataManager.config.fastMode && isCorrect)
+                        nextWord()
                 }, modifier = buttonModifier) {
                     Text("Submit")
                 }
             } else {
-                Button(onClick = {
-                    translation.value = ""
-                    jp.value = ""
-                    hiragana.value = ""
-                    overallNumber++
-                    isTranslationToJp = isTranslationToJpNext
-                    hasAnswered = false
-                    translation.value = ""
-                    while (wordQueue.size <= 10) {
-                        wordQueue.addAll(wordPool.wordsScrambled())
-                    }
-                    if (isCorrect) {
-                        wordQueue.removeAt(0)
-                        correctNumber++
-                    } else {
-                        if (dataManager.config.repeatNotCorrect) {
-                            if (wordQueue[4] != word) wordQueue.add(4, word)
-                            if (wordQueue[10] != word) wordQueue.add(10, word)
-                        } else
-                            wordQueue.removeAt(0)
-                    }
-                    isCorrect = false
-                }, modifier = buttonModifier) {
+                Button(onClick = nextWord, modifier = buttonModifier) {
                     Text("Next")
                 }
             }
@@ -155,7 +155,7 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
         modifier: Modifier = Modifier
     ) {
         val correct = remember(lock) { typedValue.value.equalsStripIgnoreCase(correctOne) }
-        Column {
+        Column(modifier = modifier) {
             OutlinedTextField(
                 value = typedValue.value,
                 onValueChange = {
@@ -190,7 +190,10 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
     @Composable
     fun showSettingsDialog(onClose: () -> Unit) {
         val config = dataManager.config
-        var repeatIncorrect by remember { mutableStateOf(config.repeatNotCorrect) }
+        val repeatIncorrect = remember { mutableStateOf(config.repeatNotCorrect) }
+        val askHiragana = remember { mutableStateOf(config.askHiragana) }
+        val fastMode = remember { mutableStateOf(config.fastMode) }
+        var isTranslationToJp by remember { mutableStateOf(config.isTranslateToJp) }
         AlertDialog(
             onDismissRequest = onClose,
             dismissButton = {
@@ -201,28 +204,49 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
             confirmButton = {
                 TextButton(onClick = {
                     onClose()
-                    config.repeatNotCorrect = repeatIncorrect
+                    config.repeatNotCorrect = repeatIncorrect.value
+                    config.askHiragana = askHiragana.value
+                    config.fastMode = fastMode.value
+                    config.isTranslateToJp = isTranslationToJp
                     dataManager.config = config
                 }) {
                     Text("OK")
                 }
             },
             text = {
-                Row(
-                    Modifier.fillMaxWidth().defaultMinSize(minHeight = 80.dp).padding(8.dp).clickable {
-                        repeatIncorrect = !repeatIncorrect
-                    },
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Checkbox(
-                        checked = repeatIncorrect,
-                        onCheckedChange = { repeatIncorrect = it },
-                        modifier = Modifier.padding(8.dp).align(Alignment.CenterVertically)
-                    )
-                    Text("Repeat incorrect", modifier = Modifier.padding(8.dp).align(Alignment.CenterVertically))
+                Column {
+                    checkboxOption(repeatIncorrect, "Repeat incorrect")
+                    checkboxOption(askHiragana, "Ask hiragana")
+                    checkboxOption(fastMode, "Fast mode")
+                    Button(
+                        { isTranslationToJp = !isTranslationToJp },
+                        Modifier.fillMaxWidth().defaultMinSize(minHeight = 64.dp)
+                            .padding(vertical = 12.dp, horizontal = 8.dp)
+                            .border(2.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
+                            .align(Alignment.CenterHorizontally)
+                    ) {
+                        Text(if (isTranslationToJp) "Russian → Japanese" else "Japanese → Russian")
+                    }
                 }
             }
         )
+    }
+
+    @Composable
+    fun checkboxOption(checked: MutableState<Boolean>, label: String) {
+        Row(
+            Modifier.fillMaxWidth().defaultMinSize(minHeight = 80.dp).padding(8.dp).clickable {
+                checked.value = !checked.value
+            },
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Checkbox(
+                checked = checked.value,
+                onCheckedChange = { checked.value = it },
+                modifier = Modifier.padding(8.dp).align(Alignment.CenterVertically)
+            )
+            Text(label, modifier = Modifier.padding(8.dp).align(Alignment.CenterVertically))
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

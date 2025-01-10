@@ -7,6 +7,8 @@ import oblitusnumen.nihongohelper.Config
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 
 class DataManager(val context: Context) {
@@ -25,7 +27,9 @@ class DataManager(val context: Context) {
 
     fun getWordPools(): List<WordPool> {
         val result: MutableList<WordPool> = ArrayList()
-        for (poolFile in poolsDir.listFiles() ?: throw IOException("Could not list files from directory")) {
+        for (poolFile in poolsDir.listFiles()
+            ?.sortedBy { Files.readAttributes(it.toPath(), BasicFileAttributes::class.java).creationTime() }
+            ?: throw IOException("Could not list files from directory")) {
             result.add(WordPool(poolFile))
         }
         return result

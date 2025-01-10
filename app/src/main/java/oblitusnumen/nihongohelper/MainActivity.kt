@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
                         if (wordScreen == null)
                             mainScreen.topBar()
                         else
-                            wordScreen!!.topBar({ wordScreen = null })
+                            wordScreen!!.topBar { wordScreen = null }
                     },
                     floatingActionButton = {
                         if (wordScreen == null)

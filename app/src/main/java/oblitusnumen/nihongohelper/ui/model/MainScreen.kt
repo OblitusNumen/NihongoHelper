@@ -1,5 +1,8 @@
 package oblitusnumen.nihongohelper.ui.model
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,6 +33,30 @@ class MainScreen(private val dataManager: DataManager) {
         LazyColumn(modifier = modifier) {
             items(wordPools) {
                 drawWordPool(it) { openPool(it.filename) }
+            }
+            item {
+                Button(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp, horizontal = 8.dp),
+                    onClick = {
+                        val context = dataManager.context
+                        val intent =
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/OblitusNumen/NihongoHelper"))
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Log.e("BrowserIntent", "Error starting activity", e)
+                            Toast.makeText(context, "Failed to open browser", Toast.LENGTH_SHORT).show()
+                        }
+                    }) {
+                    Text(
+                        modifier = Modifier.weight(1.0f).padding(start = 8.dp, end = 8.dp)
+                            .align(Alignment.CenterVertically),
+                        text = "Visit site",
+                        style = MaterialTheme.typography.headlineSmall,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }
@@ -88,7 +115,6 @@ class MainScreen(private val dataManager: DataManager) {
 
     @Composable
     fun functionButton() {
-        // Remember a launcher to pick a file
         val filePickerLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.GetContent()
         ) {
