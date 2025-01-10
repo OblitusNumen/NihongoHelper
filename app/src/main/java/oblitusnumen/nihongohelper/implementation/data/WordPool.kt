@@ -1,20 +1,22 @@
 package oblitusnumen.nihongohelper.implementation.data
 
 import java.io.File
+import java.io.InputStream
 
-class WordPool(var file: File) {
-    val filename: String = file.name
+class WordPool {
+    private var file: File? = null
+    val filename: String
     val name: String
     private val words: List<Word>
 
-    fun countWords(): Int {
-        return words.size
+    constructor(file: File) : this(file.readLines(), file.name) {
+        this.file = file
     }
 
-    fun wordsScrambled(): List<Word> = words.shuffled()
+    constructor(inputStream: InputStream) : this(inputStream.bufferedReader().use { it.readLines() }, "")
 
-    init {
-        val lines = file.readLines()
+    private constructor(lines: List<String>, filename: String) {
+        this.filename = filename
         name = lines[0]
         val words: MutableList<Word> = mutableListOf()
         var i = 1
@@ -24,5 +26,15 @@ class WordPool(var file: File) {
             i++
         }
         this.words = words
+    }
+
+    fun countWords(): Int {
+        return words.size
+    }
+
+    fun wordsScrambled(): List<Word> = words.shuffled()
+
+    fun delete() {
+        file?.delete()
     }
 }

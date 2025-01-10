@@ -1,5 +1,6 @@
 package oblitusnumen.nihongohelper.ui.model
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -71,7 +72,7 @@ class MainScreen(private val dataManager: DataManager) {
             confirmButton = {
                 TextButton(onClick = {
                     onClose()
-                    dataManager.deletePool(wordPool)
+                    wordPool.delete()
                     wordPools = dataManager.getWordPools()
                 }) {
                     Text("OK")
@@ -91,8 +92,13 @@ class MainScreen(private val dataManager: DataManager) {
         val filePickerLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.GetContent()
         ) {
-            if (it != null)
-                wordPools += dataManager.getWordPool(dataManager.copyPool(it))
+            if (it != null) {
+                val fileName = dataManager.copyPool(it)
+                if (fileName != null)
+                    wordPools += dataManager.getWordPool(fileName)
+                else
+                    Toast.makeText(dataManager.context, "File is invalid", Toast.LENGTH_SHORT).show()
+            }
         }
         FloatingActionButton(onClick = { filePickerLauncher.launch("*/*") }) {
             Icon(Icons.Filled.Add, "Add word pool")
