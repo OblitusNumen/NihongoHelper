@@ -51,6 +51,8 @@ class DataManager(val context: Context) {
         context.contentResolver.openInputStream(uri)?.use { inputStream ->
             FileOutputStream(File(poolsDir, randomUUID)).use { outputStream ->
                 inputStream.copyTo(outputStream)
+                outputStream.flush()
+                outputStream.fd.sync()
             }
         }
         return randomUUID
