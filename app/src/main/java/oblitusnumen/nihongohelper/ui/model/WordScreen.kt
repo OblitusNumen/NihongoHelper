@@ -37,6 +37,12 @@ class WordScreen(private val dataManager: DataManager, fileName: String) {
         var askHiragana by remember { mutableStateOf(dataManager.config.askHiragana) }
         var isCorrect by remember { mutableStateOf(false) }
         var hasAnswered by remember { mutableStateOf(false) }
+        if (wordQueue.isEmpty()) {
+            Box(modifier = modifier.fillMaxSize()) {
+                Text("No words found", Modifier.align(Alignment.Center), style = MaterialTheme.typography.bodyLarge)
+            }
+            return
+        }
         val word = wordQueue[0]
         val translation = remember { mutableStateOf("") }
         val jp = remember { mutableStateOf("") }
