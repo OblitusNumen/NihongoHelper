@@ -1,10 +1,10 @@
 package oblitusnumen.nihongohelper
 
 class Config(string: String) {
-    var repeatNotCorrect: Boolean = false
-    var isTranslateToJp: Boolean = false
+    var repeatNotCorrect: Boolean = true
+    var isTranslateToJp: Boolean = true
     var askHiragana: Boolean = false
-    var fastMode: Boolean = false
+    var fastMode: Boolean = true
 
     init {
         if (string.isNotEmpty()) {
